@@ -1,37 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
 import './App.css';
-import { checkHealth } from './services/api';
+
+// Protected Route
+const PrivateRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  return token ? children : <Navigate to="/login" />;
+};
 
 function App() {
-  const [backendStatus, setBackendStatus] = useState('checking...');
-
-  useEffect(() => {
-    // Test backend connection
-    checkHealth()
-      .then(data => {
-        setBackendStatus('✅ Connected: ' + data.message);
-      })
-      .catch(error => {
-        setBackendStatus('❌ Backend not connected');
-      });
-  }, []);
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Legal Document Analyzer</h1>
-        <p>AI-Powered Contract Analysis</p>
-        <div style={{ 
-          marginTop: '20px', 
-          padding: '10px 20px', 
-          background: backendStatus.includes('✅') ? '#28a745' : '#dc3545',
-          color: 'white',
-          borderRadius: '5px'
-        }}>
-          Backend Status: {backendStatus}
-        </div>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          } 
+        />
+      </Routes>
+    </Router>
   );
 }
 
