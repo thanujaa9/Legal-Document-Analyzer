@@ -27,26 +27,6 @@
 
 ---
 
-## 📋 Table of Contents
-
-- [🎯 Overview](#-overview)
-- [✨ Features](#-features)
-- [🎬 Demo](#-demo)
-- [🏗️ Architecture](#️-architecture)
-- [🛠️ Tech Stack](#️-tech-stack)
-- [📸 Screenshots](#-screenshots)
-- [🚀 Getting Started](#-getting-started)
-- [📁 Project Structure](#-project-structure)
-- [🔌 API Documentation](#-api-documentation)
-- [🎨 Features Deep Dive](#-features-deep-dive)
-- [⚡ Performance](#-performance)
-- [🧪 Testing](#-testing)
-- [🚢 Deployment](#-deployment)
-- [🤝 Contributing](#-contributing)
-- [📝 License](#-license)
-- [👨‍💻 About Developer](#-about-developer)
-
----
 
 ## 🎯 Overview
 
