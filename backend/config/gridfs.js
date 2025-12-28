@@ -13,7 +13,6 @@ const initGridFS = () => {
     }
 
     try {
-      // Initialize GridFSBucket (no gridfs-stream needed!)
       gridfsBucket = new mongoose.mongo.GridFSBucket(conn.db, {
         bucketName: 'uploads'
       });

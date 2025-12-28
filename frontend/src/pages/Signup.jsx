@@ -18,6 +18,7 @@ const Signup = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError(''); 
   };
 
   const handleSubmit = async (e) => {
@@ -37,17 +38,14 @@ const Signup = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Save token and user
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
-        alert('✅ Account created successfully!');
         navigate('/dashboard');
       } else {
-        setError(data.message || 'Signup failed');
+        setError(data.message || 'Unable to create account');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError('Unable to connect. Please check your connection.');
       console.error('Signup error:', err);
     } finally {
       setLoading(false);
@@ -58,7 +56,7 @@ const Signup = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h1>⚖️ Legal Document Analyzer</h1>
-        <h2>Create Account</h2>
+        <h2>Create your account</h2>
 
         {error && <div className="error-message">{error}</div>}
 
@@ -71,19 +69,21 @@ const Signup = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              placeholder="John Doe"
+              placeholder="arun sharma "
+              autoComplete="name"
             />
           </div>
 
           <div className="form-group">
-            <label>Email</label>
+            <label>Email Address</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
-              placeholder="your@email.com"
+              placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
 
@@ -95,19 +95,20 @@ const Signup = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="••••••••"
+              placeholder="Create a password"
               minLength="6"
+              autoComplete="new-password"
             />
-            <small>Minimum 6 characters</small>
+            <small>Must be at least 6 characters</small>
           </div>
 
           <button type="submit" disabled={loading} className="auth-btn">
-            {loading ? '⏳ Creating account...' : '🚀 Sign Up'}
+            {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
         <p className="auth-link">
-          Already have an account? <Link to="/login">Login</Link>
+          Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </div>
     </div>

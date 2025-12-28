@@ -49,13 +49,13 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
 
     console.log('🔄 Background processing started for:', documentId);
 
-    // ✅ STEP 1: Starting (10%)
+    //  Starting (10%)
     await new Promise(resolve => setTimeout(resolve, 500));
     document.processingProgress = 10;
     await document.save();
     console.log('📍 Progress: 10% - Starting extraction');
 
-    // ✅ STEP 2: Extract text (20% → 50%)
+    // Extract text (20% → 50%)
     console.log('📄 Extracting text from document...');
     document.processingProgress = 20;
     await document.save();
@@ -77,7 +77,7 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
     await document.save();
     console.log(`📍 Progress: 50% - Text extracted (${text.length} chars, ${pageCount} pages)`);
 
-    // ✅ STEP 3: AI Analysis (60% → 85%)
+    //  AI Analysis (60% → 85%)
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log('🤖 Starting AI analysis...');
     document.processingProgress = 60;
@@ -92,7 +92,7 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
     await document.save();
     console.log(`📍 Progress: 85% - AI complete (${processingTime}ms)`);
 
-    // ✅ STEP 4: Save Analysis (90% → 95%)
+    // Save Analysis (90% → 95%)
     await new Promise(resolve => setTimeout(resolve, 500));
     console.log('💾 Saving analysis to database...');
     document.processingProgress = 90;
@@ -136,7 +136,6 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
       }
     }
 
-    // ✅ STEP 5: Complete (100%)
     await new Promise(resolve => setTimeout(resolve, 500));
     document.analysis = analysis._id;
     document.status = 'analyzed';
@@ -163,7 +162,7 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
 };
 
 // ============================================
-// ANALYZE DOCUMENT (Main Endpoint)
+// ANALYZE DOCUMENT 
 // ============================================
 exports.analyzeDocument = async (req, res) => {
   try {
@@ -175,7 +174,6 @@ exports.analyzeDocument = async (req, res) => {
       console.log('⚠️  Force refresh requested');
     }
 
-    // 1. Find document
     const document = await Document.findById(id);
     if (!document) {
       return res.status(404).json({
@@ -184,7 +182,6 @@ exports.analyzeDocument = async (req, res) => {
       });
     }
 
-    // 2. Check Redis cache (if not forcing refresh)
     if (!forceRefresh && redisClient && redisClient.isReady) {
       try {
         const cacheKey = `analysis:${id}`;
@@ -212,14 +209,12 @@ exports.analyzeDocument = async (req, res) => {
       }
     }
 
-    // 3. Check if already analyzed in database (if not forcing refresh)
     if (!forceRefresh && document.status === 'analyzed') {
       const existingAnalysis = await Analysis.findOne({ document: id });
       
       if (existingAnalysis) {
         console.log('✅ Found existing analysis in database');
         
-        // Store in cache for future
         if (redisClient && redisClient.isReady) {
           try {
             await cacheHelpers.set(`analysis:${id}`, existingAnalysis, 3600);
@@ -244,11 +239,9 @@ exports.analyzeDocument = async (req, res) => {
       }
     }
 
-    // 4. If force refresh, delete old cache and analysis
     if (forceRefresh) {
       console.log('🔄 Force refresh - deleting old data');
       
-      // Delete cache
       if (redisClient && redisClient.isReady) {
         try {
           await cacheHelpers.del(`analysis:${id}`);
@@ -258,7 +251,6 @@ exports.analyzeDocument = async (req, res) => {
         }
       }
       
-      // Delete old analysis from DB
       try {
         await Analysis.deleteOne({ document: id });
         console.log('🗑️  Old analysis deleted');
@@ -267,14 +259,12 @@ exports.analyzeDocument = async (req, res) => {
       }
     }
 
-    // ✅ 5. Set initial processing state (5%)
     document.status = 'processing';
     document.processingProgress = 5;
     document.errorMessage = undefined;
     await document.save();
     console.log('✅ Status: processing (5%)');
 
-    // ✅ 6. Return response immediately
     res.json({
       success: true,
       message: 'Analysis started',
@@ -287,7 +277,6 @@ exports.analyzeDocument = async (req, res) => {
       }
     });
 
-    // ✅ 7. Start background processing (don't await - async)
     console.log('🚀 Starting background processing...');
     setImmediate(() => {
       processAnalysisInBackground(id, forceRefresh);
@@ -315,9 +304,6 @@ exports.analyzeDocument = async (req, res) => {
   }
 };
 
-// ============================================
-// GET ANALYSIS
-// ============================================
 exports.getAnalysis = async (req, res) => {
   try {
     const { id } = req.params;
@@ -363,7 +349,6 @@ exports.getAnalysis = async (req, res) => {
   }
 };
 
-// ... (rest of the functions remain exactly the same)
 
 exports.addNoteToClause = async (req, res) => {
   try {

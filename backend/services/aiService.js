@@ -1,20 +1,16 @@
-// backend/services/aiService.js
 const OpenAI = require('openai');
 
-// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Analyze document with GPT-4
 const analyzeDocument = async (text, documentName) => {
   try {
     console.log('🤖 Starting AI analysis...');
     console.log(`📄 Document: ${documentName}`);
     console.log(`📏 Text length: ${text.length} characters`);
 
-    // Truncate text if too long (OpenAI has token limits)
-    const maxChars = 40000; // Roughly 10k tokens
+    const maxChars = 40000;
     const truncatedText = text.length > maxChars 
       ? text.substring(0, maxChars) + '\n\n[Text truncated for analysis...]'
       : text;
@@ -78,14 +74,13 @@ ${truncatedText}`;
       ],
       temperature: 0.3,
       max_tokens: 4000,
-      response_format: { type: "json_object" } // ✅ Force JSON response
+      response_format: { type: 'json_object' }
     });
 
     const content = response.choices[0].message.content;
     console.log('✅ Received response from OpenAI');
     console.log(`📊 Tokens used: ${response.usage.total_tokens}`);
 
-    // Parse JSON
     let analysis;
     try {
       analysis = JSON.parse(content);
@@ -95,12 +90,11 @@ ${truncatedText}`;
       throw new Error('Failed to parse AI response as JSON');
     }
 
-    // Validate response structure
     if (!analysis.summary || !analysis.clauses || !analysis.risks) {
       throw new Error('Invalid analysis structure from AI');
     }
 
-    console.log(`✅ Analysis complete:`);
+    console.log('✅ Analysis complete:');
     console.log(`   📋 Clauses: ${analysis.clauses.length}`);
     console.log(`   ⚠️  Risks: ${analysis.risks.length}`);
     console.log(`   📊 Risk Score: ${analysis.overallRiskScore}`);

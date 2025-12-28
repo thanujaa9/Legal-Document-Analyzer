@@ -1,21 +1,16 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
-// Generate JWT token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '30d'
   });
 };
 
-// @route   POST /api/auth/signup
-// @desc    Register new user
-// @access  Public
 exports.signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validation
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
@@ -30,7 +25,6 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({
@@ -39,14 +33,12 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Create user
     const user = await User.create({
       name,
       email,
       password
     });
 
-    // Generate token
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -70,14 +62,10 @@ exports.signup = async (req, res) => {
   }
 };
 
-// @route   POST /api/auth/login
-// @desc    Login user
-// @access  Public
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -85,7 +73,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Find user (include password for comparison)
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
@@ -95,7 +82,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check password
     const isPasswordMatch = await user.comparePassword(password);
 
     if (!isPasswordMatch) {
@@ -105,7 +91,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Generate token
     const token = generateToken(user._id);
 
     res.json({
@@ -129,9 +114,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// @route   GET /api/auth/me
-// @desc    Get current user
-// @access  Private
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);

@@ -8,7 +8,6 @@ const analysisSchema = new mongoose.Schema({
     required: true
   },
   
-  // AI Analysis Results
   summary: {
     type: String,
     required: true
@@ -17,7 +16,7 @@ const analysisSchema = new mongoose.Schema({
   clauses: [{
     type: {
       type: String,
-      // ✅ REMOVED enum restriction - allows ANY clause type from OpenAI
+      
       required: false
     },
     text: String,
@@ -42,7 +41,7 @@ const analysisSchema = new mongoose.Schema({
     },
     category: {
       type: String,
-      // ✅ Allow any category type
+    
       required: false
     },
     description: String,
@@ -59,7 +58,6 @@ const analysisSchema = new mongoose.Schema({
   
   recommendations: [String],
   
-  // Metadata
   processingTime: Number,
   aiModel: String,
   tokensUsed: Number,
@@ -73,7 +71,6 @@ const analysisSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for faster queries
 analysisSchema.index({ document: 1 });
 analysisSchema.index({ analyzedAt: -1 });
 

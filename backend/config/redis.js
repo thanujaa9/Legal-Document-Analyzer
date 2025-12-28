@@ -1,14 +1,11 @@
-// backend/config/redis.js
 const Redis = require('ioredis');
 
-// Redis client for caching
 let redisClient = null;
 
 const initRedis = async () => {
   try {
     console.log('🔴 Initializing Redis...');
 
-    // Use environment variable or default to local
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
     
     redisClient = new Redis(redisUrl, {
@@ -22,7 +19,6 @@ const initRedis = async () => {
       }
     });
 
-    // Handle connection events
     redisClient.on('connect', () => {
       console.log('✅ Redis connected successfully');
     });
@@ -35,7 +31,6 @@ const initRedis = async () => {
       console.log('✅ Redis is ready to use');
     });
 
-    // Test connection
     await redisClient.ping();
     console.log('✅ Redis PING successful');
 
@@ -51,10 +46,8 @@ const getRedisClient = () => {
   return redisClient;
 };
 
-// Cache helpers
 const cacheHelpers = {
-  // Set cache with expiration (default 14 days)
-  async set(key, value, expirySeconds = 1209600) { // 14 days = 14 * 24 * 60 * 60
+  async set(key, value, expirySeconds = 1209600) {
     if (!redisClient) return false;
     try {
       await redisClient.setex(key, expirySeconds, JSON.stringify(value));
@@ -65,7 +58,6 @@ const cacheHelpers = {
     }
   },
 
-  // Get cache
   async get(key) {
     if (!redisClient) return null;
     try {
@@ -77,7 +69,6 @@ const cacheHelpers = {
     }
   },
 
-  // Delete cache
   async del(key) {
     if (!redisClient) return false;
     try {
@@ -89,7 +80,6 @@ const cacheHelpers = {
     }
   },
 
-  // Clear pattern (e.g., 'analysis:*')
   async clearPattern(pattern) {
     if (!redisClient) return false;
     try {
@@ -104,7 +94,6 @@ const cacheHelpers = {
     }
   },
 
-  // Check if key exists
   async exists(key) {
     if (!redisClient) return false;
     try {

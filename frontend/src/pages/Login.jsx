@@ -17,6 +17,7 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError(''); 
   };
 
   const handleSubmit = async (e) => {
@@ -36,17 +37,14 @@ const Login = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Save token and user
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
-        alert('✅ Login successful!');
         navigate('/dashboard');
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Invalid email or password');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError('Unable to connect. Please check your connection.');
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -57,20 +55,21 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h1>⚖️ Legal Document Analyzer</h1>
-        <h2>Login</h2>
+        <h2>Sign in to your account</h2>
 
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email</label>
+            <label>Email Address</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
-              placeholder="your@email.com"
+              placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
 
@@ -82,18 +81,19 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              placeholder="••••••••"
+              placeholder="Enter your password"
               minLength="6"
+              autoComplete="current-password"
             />
           </div>
 
           <button type="submit" disabled={loading} className="auth-btn">
-            {loading ? '⏳ Logging in...' : '🔓 Login'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <p className="auth-link">
-          Don't have an account? <Link to="/signup">Sign up</Link>
+          Don't have an account? <Link to="/signup">Create one</Link>
         </p>
       </div>
     </div>

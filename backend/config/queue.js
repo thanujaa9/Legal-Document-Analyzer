@@ -1,7 +1,5 @@
-// backend/config/queue.js
 const Bull = require('bull');
 
-// Analysis queue for background processing
 let analysisQueue = null;
 
 const initQueue = () => {
@@ -13,17 +11,16 @@ const initQueue = () => {
 
     analysisQueue = new Bull('document-analysis', redisUrl, {
       defaultJobOptions: {
-        attempts: 3, // Retry failed jobs 3 times
+        attempts: 3,
         backoff: {
           type: 'exponential',
-          delay: 2000 // Start with 2s delay
+          delay: 2000
         },
-        removeOnComplete: 100, // Keep last 100 completed jobs
-        removeOnFail: 200 // Keep last 200 failed jobs
+        removeOnComplete: 100,
+        removeOnFail: 200
       }
     });
 
-    // Event listeners
     analysisQueue.on('waiting', (jobId) => {
       console.log(`📋 Job ${jobId} is waiting`);
     });
@@ -62,7 +59,6 @@ const getAnalysisQueue = () => {
   return analysisQueue;
 };
 
-// Queue statistics
 const getQueueStats = async () => {
   if (!analysisQueue) {
     return { error: 'Queue not initialized' };
@@ -91,7 +87,6 @@ const getQueueStats = async () => {
   }
 };
 
-// Get job by ID
 const getJob = async (jobId) => {
   if (!analysisQueue) return null;
   try {
@@ -102,7 +97,6 @@ const getJob = async (jobId) => {
   }
 };
 
-// Clean old jobs
 const cleanQueue = async (grace = 1000) => {
   if (!analysisQueue) return false;
   try {

@@ -1,20 +1,13 @@
-// backend/services/extractionService.js
 const mammoth = require('mammoth');
 const { getGridFSBucket } = require('../config/gridfs');
 const mongoose = require('mongoose');
-
-// ✅ Use pdf-parse@1.1.1 with regular require
 const pdfParse = require('pdf-parse');
 
-// ============================================
-// Extract text from PDF
-// ============================================
 const extractFromPDF = async (buffer) => {
   try {
     console.log('📕 Extracting text from PDF...');
     console.log(`📦 Buffer size: ${buffer.length} bytes`);
 
-    // ✅ Direct call - pdf-parse 1.1.1 works with require
     const data = await pdfParse(buffer);
 
     console.log(`✅ Extracted ${data.text.length} characters`);
@@ -34,9 +27,6 @@ const extractFromPDF = async (buffer) => {
   }
 };
 
-// ============================================
-// Extract text from DOCX
-// ============================================
 const extractFromDOCX = async (buffer) => {
   try {
     console.log('📘 Extracting text from DOCX...');
@@ -50,7 +40,6 @@ const extractFromDOCX = async (buffer) => {
       throw new Error('DOCX appears to be empty or unreadable');
     }
 
-    // Estimate page count (roughly 3000 chars per page)
     const pageCount = Math.ceil(result.value.length / 3000);
 
     return {
@@ -63,9 +52,6 @@ const extractFromDOCX = async (buffer) => {
   }
 };
 
-// ============================================
-// Download file from GridFS & extract text
-// ============================================
 const extractTextFromDocument = async (gridFsId, fileType) => {
   try {
     console.log('📥 Downloading file from GridFS...');
@@ -80,10 +66,8 @@ const extractTextFromDocument = async (gridFsId, fileType) => {
 
     const chunks = [];
     const objectId = new mongoose.Types.ObjectId(gridFsId);
-
     const downloadStream = bucket.openDownloadStream(objectId);
 
-    // Download file into memory
     await new Promise((resolve, reject) => {
       downloadStream.on('data', chunk => {
         chunks.push(chunk);
@@ -107,7 +91,6 @@ const extractTextFromDocument = async (gridFsId, fileType) => {
       throw new Error('Downloaded file is empty');
     }
 
-    // Extract text based on file type
     if (fileType === 'pdf') {
       return await extractFromPDF(buffer);
     } else if (fileType === 'docx' || fileType === 'doc') {

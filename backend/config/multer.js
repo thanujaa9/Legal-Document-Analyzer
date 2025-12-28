@@ -1,9 +1,7 @@
 const multer = require('multer');
 
-// Use memory storage (no GridFsStorage needed!)
 const storage = multer.memoryStorage();
 
-// File filter - Only PDF and DOCX
 const fileFilter = (req, file, cb) => {
   const allowedTypes = [
     'application/pdf',
@@ -18,7 +16,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Multer configuration
 const upload = multer({
   storage,
   fileFilter,

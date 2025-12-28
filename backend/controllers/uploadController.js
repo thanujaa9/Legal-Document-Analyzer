@@ -5,7 +5,6 @@ const mongoose = require('mongoose');
 const { Readable } = require('stream');
 const crypto = require('crypto');
 
-// Upload files to GridFS
 exports.uploadFiles = async (req, res) => {
   try {
     console.log('📤 Upload request received');
@@ -31,7 +30,7 @@ exports.uploadFiles = async (req, res) => {
             originalName: file.originalname,
             mimetype: file.mimetype,
             uploadDate: new Date(),
-            userId: req.user.id // ✅ Store user ID in metadata
+            userId: req.user.id 
           }
         });
 
@@ -44,9 +43,8 @@ exports.uploadFiles = async (req, res) => {
 
         console.log('✅ File uploaded to GridFS:', uploadStream.id);
 
-        // ✅ Save document with user reference
         const doc = new Document({
-          user: req.user.id, // ✅ Associate with user
+          user: req.user.id, 
           filename: filename,
           originalName: file.originalname,
           fileType: path.extname(file.originalname).substring(1).toLowerCase(),
@@ -81,7 +79,6 @@ exports.uploadFiles = async (req, res) => {
   }
 };
 
-// Get all documents for logged-in user
 exports.getAllDocuments = async (req, res) => {
   try {
     const { 
@@ -93,7 +90,6 @@ exports.getAllDocuments = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    // ✅ Filter by user
     const query = { user: req.user.id };
     
     if (status && status !== 'all') query.status = status;
@@ -111,6 +107,7 @@ exports.getAllDocuments = async (req, res) => {
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit))
+        .populate('analysis', 'overallRiskScore') 
         .lean(),
       Document.countDocuments(query)
     ]);
@@ -136,12 +133,11 @@ exports.getAllDocuments = async (req, res) => {
   }
 };
 
-// Get single document (check ownership)
 exports.getDocument = async (req, res) => {
   try {
     const document = await Document.findOne({
       _id: req.params.id,
-      user: req.user.id // ✅ Ensure user owns document
+      user: req.user.id 
     }).lean();
 
     if (!document) {
@@ -165,12 +161,11 @@ exports.getDocument = async (req, res) => {
   }
 };
 
-// Delete document (check ownership)
 exports.deleteDocument = async (req, res) => {
   try {
     const document = await Document.findOne({
       _id: req.params.id,
-      user: req.user.id // ✅ Ensure user owns document
+      user: req.user.id 
     });
 
     if (!document) {
@@ -201,12 +196,11 @@ exports.deleteDocument = async (req, res) => {
   }
 };
 
-// Download document (check ownership)
 exports.downloadDocument = async (req, res) => {
   try {
     const document = await Document.findOne({
       _id: req.params.id,
-      user: req.user.id // ✅ Ensure user owns document
+      user: req.user.id 
     });
 
     if (!document) {
@@ -250,12 +244,11 @@ exports.downloadDocument = async (req, res) => {
   }
 };
 
-// Stream document (check ownership)
 exports.streamDocument = async (req, res) => {
   try {
     const document = await Document.findOne({
       _id: req.params.id,
-      user: req.user.id // ✅ Ensure user owns document
+      user: req.user.id 
     });
 
     if (!document) {

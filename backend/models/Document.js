@@ -33,7 +33,6 @@ const documentSchema = new mongoose.Schema({
     default: Date.now
   },
   
-  // Processing status
   status: {
     type: String,
     enum: ['uploaded', 'processing', 'analyzed', 'error'],
@@ -49,11 +48,9 @@ const documentSchema = new mongoose.Schema({
   
   errorMessage: String,
   
-  // Extracted content
   extractedText: String,
   pageCount: Number,
   
-  // Reference to analysis
   analysis: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Analysis'
@@ -63,7 +60,6 @@ const documentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for faster queries
 documentSchema.index({ uploadDate: -1 });
 documentSchema.index({ status: 1 });
 documentSchema.index({ originalName: 'text' });
