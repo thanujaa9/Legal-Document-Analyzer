@@ -11,11 +11,6 @@
 [![Video Demo](https://img.shields.io/badge/🎥_Video_Demo-Watch_Now-red?style=for-the-badge)](https://your-video-link.com)
 [![Documentation](https://img.shields.io/badge/📖_Docs-Read_More-green?style=for-the-badge)](https://github.com/yourusername/legal-doc-analyzer)
 
-<br>
-
-![GitHub stars](https://img.shields.io/github/stars/yourusername/legal-doc-analyzer?style=social)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/legal-doc-analyzer?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/yourusername/legal-doc-analyzer?style=social)
 
 <br>
 
@@ -27,8 +22,6 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-412991)
 
 <br>
-
-![Main Banner](https://via.placeholder.com/1200x400/1e3a8a/ffffff?text=Legal+Document+Analyzer)
 
 </div>
 
