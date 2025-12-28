@@ -49,7 +49,7 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
 
     console.log('🔄 Background processing started for:', documentId);
 
-    //  Starting (10%)
+    // Starting (10%)
     await new Promise(resolve => setTimeout(resolve, 500));
     document.processingProgress = 10;
     await document.save();
@@ -77,7 +77,7 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
     await document.save();
     console.log(`📍 Progress: 50% - Text extracted (${text.length} chars, ${pageCount} pages)`);
 
-    //  AI Analysis (60% → 85%)
+    // AI Analysis (60% → 85%)
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log('🤖 Starting AI analysis...');
     document.processingProgress = 60;
@@ -126,11 +126,22 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
     await document.save();
     console.log('📍 Progress: 95% - Analysis saved');
 
-    // Cache the analysis
+    // 🎯 Cache the analysis (TWO-LEVEL CACHING)
     if (redisClient && redisClient.isReady) {
       try {
+        // Cache by document ID
         await cacheHelpers.set(`analysis:${documentId}`, analysis, 3600);
-        console.log('💾 Analysis cached in Redis');
+        console.log('💾 Analysis cached by document ID');
+        
+        // 🔥 IMPORTANT: Also cache by file hash!
+        if (document.fileHash) {
+          await cacheHelpers.set(
+            `analysis:hash:${document.fileHash}`, 
+            analysis, 
+            86400  // 24 hours for hash-based cache
+          );
+          console.log('💾 Analysis cached by file hash');
+        }
       } catch (cacheErr) {
         console.error('Cache store error:', cacheErr);
       }
@@ -160,6 +171,8 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
     }
   }
 };
+
+
 
 // ============================================
 // ANALYZE DOCUMENT 

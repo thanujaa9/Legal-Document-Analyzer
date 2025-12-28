@@ -1,4 +1,3 @@
-// backend/models/Document.js
 const mongoose = require('mongoose');
 
 const documentSchema = new mongoose.Schema({
@@ -28,6 +27,13 @@ const documentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
+  
+  // 🎯 ADD THIS: For detecting duplicate files
+  fileHash: {
+    type: String,
+    index: true  // Index for fast lookups
+  },
+  
   uploadDate: {
     type: Date,
     default: Date.now
@@ -63,5 +69,8 @@ const documentSchema = new mongoose.Schema({
 documentSchema.index({ uploadDate: -1 });
 documentSchema.index({ status: 1 });
 documentSchema.index({ originalName: 'text' });
+// 🎯 ADD THIS: Index for hash-based duplicate detection
+documentSchema.index({ user: 1, fileHash: 1 });
 
 module.exports = mongoose.model('Document', documentSchema);
+

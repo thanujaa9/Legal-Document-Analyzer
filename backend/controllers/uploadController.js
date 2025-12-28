@@ -1,4 +1,6 @@
+
 const Document = require('../models/Document');
+const Analysis = require('../models/Analysis');
 const { getGridFSBucket } = require('../config/gridfs');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -21,6 +23,39 @@ exports.uploadFiles = async (req, res) => {
     
     const documents = await Promise.all(
       req.files.map(async (file) => {
+        
+        // 🎯 STEP 1: Calculate SHA-256 hash of file content
+        const fileHash = crypto
+          .createHash('sha256')
+          .update(file.buffer)
+          .digest('hex');
+        
+        console.log('📊 File:', file.originalname);
+        console.log('   Hash:', fileHash.substring(0, 16) + '...');
+        
+        // 🎯 STEP 2: Check if this exact file was already analyzed
+        const existingDoc = await Document.findOne({ 
+          user: req.user.id,
+          fileHash: fileHash,
+          status: 'analyzed'
+        }).populate('analysis');
+        
+        if (existingDoc && existingDoc.analysis) {
+          console.log('⚡ DUPLICATE FOUND!');
+          console.log('   Original:', existingDoc.originalName);
+          console.log('   Uploaded:', existingDoc.uploadDate);
+          console.log('   Status: Already analyzed ✅');
+          
+          return {
+            isDuplicate: true,
+            document: existingDoc,
+            analysis: existingDoc.analysis
+          };
+        }
+        
+        // 🎯 STEP 3: New file - proceed with upload
+        console.log('📄 New file, uploading to GridFS...');
+        
         const filename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}-${file.originalname}`;
         
         const readableStream = Readable.from(file.buffer);
@@ -43,30 +78,57 @@ exports.uploadFiles = async (req, res) => {
 
         console.log('✅ File uploaded to GridFS:', uploadStream.id);
 
+        // 🎯 STEP 4: Save document WITH hash
         const doc = new Document({
           user: req.user.id, 
           filename: filename,
           originalName: file.originalname,
           fileType: path.extname(file.originalname).substring(1).toLowerCase(),
           fileSize: file.size,
-          gridFsId: uploadStream.id
+          gridFsId: uploadStream.id,
+          fileHash: fileHash  // 🔥 Store the hash!
         });
 
-        return await doc.save();
+        const savedDoc = await doc.save();
+        console.log('✅ Document saved with hash');
+        
+        return {
+          isDuplicate: false,
+          document: savedDoc
+        };
       })
     );
 
+    // 🎯 STEP 5: Separate duplicates from new uploads
+    const duplicates = documents.filter(d => d.isDuplicate);
+    const newUploads = documents.filter(d => !d.isDuplicate);
+
+    console.log('');
+    console.log('📊 UPLOAD SUMMARY:');
+    console.log('   New files:', newUploads.length);
+    console.log('   Duplicates:', duplicates.length);
+    console.log('');
+
+    // 🎯 STEP 6: Return response with duplicate info
     res.status(201).json({
       success: true,
-      message: `${documents.length} file(s) uploaded successfully`,
-      documents: documents.map(doc => ({
-        id: doc._id,
-        originalName: doc.originalName,
-        fileSize: doc.fileSize,
-        fileType: doc.fileType,
-        uploadDate: doc.uploadDate,
-        status: doc.status
-      }))
+      message: duplicates.length > 0 
+        ? `${newUploads.length} new, ${duplicates.length} duplicate(s) detected (already analyzed)`
+        : `${documents.length} file(s) uploaded successfully`,
+      documents: documents.map(d => {
+        const doc = d.document;
+        return {
+          id: doc._id,
+          originalName: doc.originalName,
+          fileSize: doc.fileSize,
+          fileType: doc.fileType,
+          uploadDate: doc.uploadDate,
+          status: doc.status,
+          isDuplicate: d.isDuplicate,
+          cached: d.isDuplicate,
+          analysisId: d.analysis?._id
+        };
+      })
     });
 
   } catch (error) {
