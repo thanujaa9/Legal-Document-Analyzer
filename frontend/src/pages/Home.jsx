@@ -33,7 +33,7 @@ const Home = () => {
 
       const analyzedDocs = allDocs.filter(doc => doc.status === 'analyzed');
       const highRiskDocs = analyzedDocs.filter(doc => 
-        doc.analysis?.overallRiskScore >= 70
+        doc.analysis?.overallRiskScore >= 60
       );
       
       const totalRiskScore = analyzedDocs.reduce((sum, doc) => 
