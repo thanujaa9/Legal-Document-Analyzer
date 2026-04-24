@@ -5,14 +5,6 @@
 ### **AI-Powered Contract Analysis Platform**
 *Enterprise-grade document processing with Redis caching, Bull queue, and GPT-4 integration*
 
-<br>
-
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_Site-blue?style=for-the-badge)](https://your-demo-link.com)
-[![Video Demo](https://img.shields.io/badge/🎥_Video_Demo-Watch_Now-red?style=for-the-badge)](https://your-video-link.com)
-
-
-
-<br>
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node Version](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen)
