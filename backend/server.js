@@ -18,8 +18,10 @@ console.log('📍 PORT:', process.env.PORT || 8081);
 const app = express();
 
 app.use(cors({
-  origin: "*",
-  credentials: true
+  origin: process.env.FRONTEND_URL || "*",
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 
