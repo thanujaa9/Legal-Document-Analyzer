@@ -260,4 +260,3 @@ This project currently uses the package-level ISC license declaration. Add a roo
 
 ---
 
-Built as a full-stack portfolio project demonstrating secure AI integration, document processing, structured data extraction and cost-aware public demo design.
