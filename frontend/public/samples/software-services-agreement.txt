@@ -1,0 +1,48 @@
+FICTIONAL SOFTWARE SERVICES AGREEMENT
+
+Portfolio example only. The parties and terms below are fictional. This document is not legal advice.
+
+This Software Services Agreement (the “Agreement”) is entered into on 1 July 2026 between Northstar Labs Private Limited (“Provider”) and Acme Retail Private Limited (“Customer”).
+
+1. SERVICES
+Provider will configure and provide access to its hosted retail analytics platform, standard product updates, email support, and monthly usage reports. Customer will provide accurate implementation information, nominate an administrator, and use the service only for its internal business operations.
+
+2. TERM AND RENEWAL
+The initial term is twelve months beginning on the effective date. The Agreement renews automatically for successive twelve-month periods unless either party gives at least thirty days’ written notice before the current term ends. Renewal pricing will be Provider’s then-current pricing.
+
+3. FEES AND PAYMENT
+Customer will pay a monthly subscription fee of $2,500. Provider will invoice monthly in advance, and each invoice is due within fifteen days. Undisputed overdue amounts may accrue interest at one percent per month. Customer must notify Provider of a disputed invoice within ten days after receipt.
+
+4. SERVICE LEVEL AND SUPPORT
+Provider will use commercially reasonable efforts to keep the service available. Planned maintenance may occur outside ordinary business hours. Provider will receive support requests by email, but no guaranteed uptime percentage, response time, resolution time, service credit, or termination right for repeated service failures applies.
+
+5. CUSTOMER DATA AND SECURITY
+Customer retains ownership of data submitted to the service. Provider may process Customer data as necessary to deliver and improve the services. Provider will use reasonable safeguards, but this Agreement does not prescribe a security framework, incident-notification deadline, subprocessor approval process, data-location restriction, retention schedule, or detailed data-return procedure.
+
+6. INTELLECTUAL PROPERTY
+Provider retains all rights in the platform, documentation, templates, methods, improvements, and all deliverables created while performing the services. Provider grants Customer a non-exclusive, non-transferable license to use delivered materials during the term solely with the service. No ownership in custom deliverables transfers to Customer.
+
+7. CONFIDENTIALITY
+Each party will protect the other party’s Confidential Information using reasonable care and will use it only to perform this Agreement. These obligations continue for three years after disclosure. Information that is public, previously known, independently developed, or lawfully received from another source is excluded.
+
+8. WARRANTIES
+Provider warrants that the services will be performed professionally and substantially in accordance with the documentation. Customer’s exclusive remedy is re-performance of the affected service. No formal acceptance test, correction deadline, refund right, or separate warranty for custom deliverables is provided.
+
+9. LIMITATION OF LIABILITY
+Neither party is liable for indirect, incidental, special, consequential, or lost-profit damages. Provider’s total aggregate liability arising from this Agreement will not exceed the fees paid by Customer during the three months immediately preceding the event giving rise to the claim. The cap does not state separate treatment for confidentiality, data-security, infringement, fraud, or wilful misconduct claims.
+
+10. TERMINATION
+Either party may terminate for material breach if the breach is not cured within ten days after written notice. Provider may suspend access for overdue undisputed fees. On termination, Customer must stop using the service and pay accrued charges. Provider will make Customer data available for export for fifteen days and may delete it afterward.
+
+11. GENERAL
+Neither party may assign this Agreement without consent, except as part of a merger or sale of substantially all assets. Notices must be sent by email and registered post. This Agreement is governed by the laws of Karnataka, India, and the courts in Bengaluru have exclusive jurisdiction.
+
+AGREED FOR NORTHSTAR LABS PRIVATE LIMITED
+Name: Maya Rao
+Title: Director
+Date: 1 July 2026
+
+AGREED FOR ACME RETAIL PRIVATE LIMITED
+Name: Arun Mehta
+Title: Operations Head
+Date: 1 July 2026

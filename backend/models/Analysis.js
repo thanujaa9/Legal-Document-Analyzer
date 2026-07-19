@@ -61,6 +61,7 @@ const analysisSchema = new mongoose.Schema({
   processingTime: Number,
   aiModel: String,
   tokensUsed: Number,
+  chunksProcessed: Number,
   
   analyzedAt: {
     type: Date,

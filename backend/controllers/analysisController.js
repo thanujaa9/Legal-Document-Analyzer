@@ -4,18 +4,21 @@ const Analysis = require('../models/Analysis');
 const { extractTextFromDocument } = require('../services/extractionService');
 const { analyzeDocument: analyzeWithAI } = require('../services/aiService');
 const { generateAnalysisPDF } = require('../services/pdfExportService');
+const { claimDailyAnalysisSlot } = require('../services/dailyAnalysisLimit');
+const MAX_PAGES = Number(process.env.MAX_DOCUMENT_PAGES) || 80;
+const MAX_TEXT_CHARS = Number(process.env.MAX_DOCUMENT_TEXT_CHARS) || 140000;
 
 // Redis setup
-let redisClient;
 let cacheHelpers;
+let getRedisClient;
 try {
   const redis = require('../config/redis');
-  redisClient = redis.client;
+  getRedisClient = redis.getRedisClient;
   cacheHelpers = redis.cacheHelpers;
   console.log('✅ Redis configured');
 } catch (err) {
   console.log('⚠️  Redis not configured, skipping cache');
-  redisClient = null;
+  getRedisClient = () => null;
   cacheHelpers = {
     get: async () => null,
     set: async () => {},
@@ -68,7 +71,15 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
     );
 
     if (!text || text.length < 100) {
-      throw new Error('Extracted text is too short or empty');
+      const error = new Error('The document has too little readable text. Scanned/image-only PDFs are not supported.');
+      error.code = 'INVALID_FILE';
+      throw error;
+    }
+
+    if (pageCount > MAX_PAGES || text.length > MAX_TEXT_CHARS) {
+      const error = new Error(`Document exceeds the demo limit of ${MAX_PAGES} pages or ${MAX_TEXT_CHARS.toLocaleString()} extracted characters.`);
+      error.code = 'DOCUMENT_TOO_LARGE';
+      throw error;
     }
 
     document.extractedText = text;
@@ -85,7 +96,10 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
     console.log('📍 Progress: 60% - AI analyzing');
 
     const startTime = Date.now();
-    const aiResult = await analyzeWithAI(text, document.originalName);
+    const aiResult = await analyzeWithAI(text, document.originalName, async (completed, total, stage) => {
+      const progress = stage === 'combining' ? 88 : 55 + Math.round((completed / total) * 30);
+      await Document.findByIdAndUpdate(documentId, { processingProgress: progress });
+    });
     const processingTime = Date.now() - startTime;
 
     document.processingProgress = 85;
@@ -109,8 +123,9 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
           keyFindings: aiResult.keyFindings || [],
           recommendations: aiResult.recommendations || [],
           processingTime,
-          aiModel: aiResult.aiModel || 'gpt-4o-mini',
+          aiModel: aiResult.aiModel || 'gemini-2.5-flash',
           tokensUsed: aiResult.tokensUsed,
+          chunksProcessed: aiResult.chunksProcessed,
           analyzedAt: new Date()
         }
       },
@@ -127,7 +142,7 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
     console.log('📍 Progress: 95% - Analysis saved');
 
     // 🎯 Cache the analysis (TWO-LEVEL CACHING)
-    if (redisClient && redisClient.isReady) {
+    if (getRedisClient()?.status === 'ready') {
       try {
         // Cache by document ID
         await cacheHelpers.set(`analysis:${documentId}`, analysis, 3600);
@@ -163,6 +178,7 @@ const processAnalysisInBackground = async (documentId, forceRefresh) => {
       await Document.findByIdAndUpdate(documentId, {
         status: 'error',
         errorMessage: error.message,
+        errorCode: error.code || 'ANALYSIS_FAILED',
         processingProgress: 0
       });
       console.log('❌ Document marked as error');
@@ -187,7 +203,7 @@ exports.analyzeDocument = async (req, res) => {
       console.log('⚠️  Force refresh requested');
     }
 
-    const document = await Document.findById(id);
+    const document = await Document.findOne({ _id: id, user: req.user.id });
     if (!document) {
       return res.status(404).json({
         success: false,
@@ -195,7 +211,15 @@ exports.analyzeDocument = async (req, res) => {
       });
     }
 
-    if (!forceRefresh && redisClient && redisClient.isReady) {
+    if (document.status === 'processing') {
+      return res.status(409).json({
+        success: false,
+        code: 'ANALYSIS_IN_PROGRESS',
+        message: 'Analysis is already in progress. This request did not start another AI job.'
+      });
+    }
+
+    if (!forceRefresh && getRedisClient()?.status === 'ready') {
       try {
         const cacheKey = `analysis:${id}`;
         const cachedData = await cacheHelpers.get(cacheKey);
@@ -228,7 +252,7 @@ exports.analyzeDocument = async (req, res) => {
       if (existingAnalysis) {
         console.log('✅ Found existing analysis in database');
         
-        if (redisClient && redisClient.isReady) {
+        if (getRedisClient()?.status === 'ready') {
           try {
             await cacheHelpers.set(`analysis:${id}`, existingAnalysis, 3600);
           } catch (err) {
@@ -252,10 +276,19 @@ exports.analyzeDocument = async (req, res) => {
       }
     }
 
+    const dailySlot = await claimDailyAnalysisSlot();
+    if (!dailySlot.allowed) {
+      return res.status(429).json({
+        success: false,
+        code: 'DAILY_DEMO_LIMIT_REACHED',
+        message: 'Today’s one free live analysis has already been used. Please view the five Sample Demo reports or try again tomorrow.'
+      });
+    }
+
     if (forceRefresh) {
       console.log('🔄 Force refresh - deleting old data');
       
-      if (redisClient && redisClient.isReady) {
+      if (getRedisClient()?.status === 'ready') {
         try {
           await cacheHelpers.del(`analysis:${id}`);
           console.log('🗑️  Cache deleted');
@@ -272,10 +305,12 @@ exports.analyzeDocument = async (req, res) => {
       }
     }
 
-    document.status = 'processing';
-    document.processingProgress = 5;
-    document.errorMessage = undefined;
-    await document.save();
+    const locked = await Document.findOneAndUpdate(
+      { _id: id, user: req.user.id, status: { $ne: 'processing' } },
+      { $set: { status: 'processing', processingProgress: 5 }, $unset: { errorMessage: 1, errorCode: 1 } },
+      { new: true }
+    );
+    if (!locked) return res.status(409).json({ success: false, code: 'ANALYSIS_IN_PROGRESS', message: 'Analysis is already in progress.' });
     console.log('✅ Status: processing (5%)');
 
     res.json({
@@ -284,9 +319,9 @@ exports.analyzeDocument = async (req, res) => {
       cached: false,
       fromCache: false,
       document: {
-        id: document._id,
-        status: document.status,
-        processingProgress: document.processingProgress
+        id: locked._id,
+        status: locked.status,
+        processingProgress: locked.processingProgress
       }
     });
 
@@ -303,6 +338,7 @@ exports.analyzeDocument = async (req, res) => {
       await Document.findByIdAndUpdate(req.params.id, {
         status: 'error',
         errorMessage: error.message,
+        errorCode: error.code || 'ANALYSIS_FAILED',
         processingProgress: 0
       });
     } catch (updateError) {
@@ -320,6 +356,9 @@ exports.analyzeDocument = async (req, res) => {
 exports.getAnalysis = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const ownedDocument = await Document.exists({ _id: id, user: req.user.id });
+    if (!ownedDocument) return res.status(404).json({ success: false, message: 'Analysis not found' });
 
     const cacheKey = `analysis:${id}`;
     const cachedAnalysis = await cacheHelpers.get(cacheKey);

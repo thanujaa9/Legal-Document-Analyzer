@@ -1,0 +1,49 @@
+FICTIONAL MUTUAL NON-DISCLOSURE AGREEMENT
+
+Portfolio example only. The parties and terms below are fictional. This document is not legal advice.
+
+This Mutual Non-Disclosure Agreement (the “Agreement”) is made on 5 July 2026 between BluePeak Innovations Private Limited (“BluePeak”) and Cedar Works LLP (“Cedar”). Each may disclose information and each may receive information under this Agreement.
+
+1. PURPOSE
+The parties wish to evaluate a possible technology-development and distribution relationship. Confidential Information may be used only for that evaluation and related negotiations.
+
+2. CONFIDENTIAL INFORMATION
+“Confidential Information” means non-public technical, financial, commercial, product, customer, pricing, security, business-plan and research information disclosed in written, electronic, visual or oral form. Oral information must be identified as confidential when disclosed and summarized in writing within fifteen days.
+
+3. EXCLUSIONS
+Confidential Information does not include information the receiving party can demonstrate was already lawfully known, becomes public without breach, is received lawfully from a third party without restriction, or is independently developed without reference to the disclosure.
+
+4. PROTECTION AND LIMITED USE
+Each receiving party will use at least reasonable care to protect Confidential Information and will not use it outside the Purpose. Information may be shared only with employees, professional advisers and contractors who need to know it. The Agreement does not expressly require those recipients to sign equally protective obligations or state that the receiving party remains responsible for every recipient breach.
+
+5. REQUIRED DISCLOSURE
+A receiving party may disclose information when required by law, regulation or court order. Where legally permitted, it will provide prompt notice and reasonable assistance so the disclosing party may seek confidential treatment or a protective order.
+
+6. RESIDUAL KNOWLEDGE
+Nothing restricts a receiving party from using ideas, concepts, know-how or techniques retained in the unaided memories of personnel who had lawful access to Confidential Information. Personnel are not required to forget information or avoid working on similar projects.
+
+7. RETURN OR DESTRUCTION
+Upon written request, the receiving party will return or destroy materials containing Confidential Information. The Agreement does not specify a completion deadline or require written certification. Archival backup copies may be retained under ordinary system processes and remain subject to confidentiality obligations.
+
+8. TERM
+This Agreement remains in force for two years. Confidentiality and limited-use obligations continue for three years after each disclosure. Trade secrets are not given a separate longer protection period.
+
+9. NO LICENSE OR WARRANTY
+No intellectual-property license is granted except the limited right to evaluate information for the Purpose. All information is provided “as is,” without warranty of accuracy or completeness. Neither party is obligated to enter into a further transaction.
+
+10. DATA PROTECTION
+The parties may exchange business contact details. This Agreement does not establish roles, processing instructions, security measures, cross-border transfer rules, breach notification, or deletion requirements for personal data.
+
+11. REMEDIES
+The parties acknowledge that unauthorized disclosure may cause irreparable harm and that injunctive relief may be available in addition to other remedies.
+
+12. GOVERNING LAW
+This Agreement is governed by the laws of Karnataka, India. It does not designate exclusive courts, arbitration, or another agreed dispute-resolution forum.
+
+SIGNED FOR BLUEPEAK INNOVATIONS PRIVATE LIMITED
+Name: Neha Kapoor
+Title: Chief Technology Officer
+
+SIGNED FOR CEDAR WORKS LLP
+Name: Rahul Sen
+Title: Partner

@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Analysis from './pages/Analysis';
 import Library from './pages/Library';
+import DemoAnalysis from './pages/DemoAnalysis';
 import "./App.css";
 
 const ProtectedRoute = ({ children }) => {
@@ -23,16 +24,11 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/demo" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/demo/:slug" element={<ProtectedRoute><DemoAnalysis /></ProtectedRoute>} />
 
         {/* Protected Routes */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
 
         <Route
           path="/dashboard"

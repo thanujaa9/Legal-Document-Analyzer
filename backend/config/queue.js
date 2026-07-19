@@ -7,7 +7,7 @@ const initQueue = () => {
     console.log('🐂 Initializing Bull Queue...');
     
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    console.log('📍 Redis URL:', redisUrl);
+    console.log('📍 Redis configured:', Boolean(process.env.REDIS_URL));
 
     analysisQueue = new Bull('document-analysis', redisUrl, {
       defaultJobOptions: {

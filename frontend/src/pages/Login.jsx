@@ -5,8 +5,8 @@ import API_BASE_URL from '../services/api';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: 'xyz@gmail.com',
+    password: '123456'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -58,6 +58,12 @@ const Login = () => {
         <h2>Sign in to your account</h2>
 
         {error && <div className="error-message">{error}</div>}
+
+        <div className="demo-credentials">
+          <span>Demo login</span>
+          <strong>xyz@gmail.com</strong>
+          <strong>123456</strong>
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

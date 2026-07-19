@@ -15,8 +15,8 @@ const Upload = () => {
   const [uploadedDocs, setUploadedDocs] = useState([]);
 
   const ACCEPTED_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-  const MAX_FILES = 10;
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+  const MAX_FILES = 3;
 
   // Validate file
   const validateFile = (file) => {
@@ -187,7 +187,8 @@ const Upload = () => {
             <div>
               <strong>Supported formats:</strong> PDF, DOCX
               <span className="divider">•</span>
-              <strong>Max size:</strong> 50MB per file
+              <strong>Max size:</strong> 10MB per file (up to 80 pages)
+              <div style={{ marginTop: '8px' }}><strong>Privacy:</strong> Do not upload confidential, privileged, personal, or commercially sensitive documents to this portfolio demo.</div>
               <span className="divider">•</span>
               <strong>Max files:</strong> {MAX_FILES} at once
             </div>

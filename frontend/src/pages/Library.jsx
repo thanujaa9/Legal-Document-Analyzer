@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { documents } from '../services/api';
+import { getSampleDocuments } from '../data/sampleAnalyses';
 import './Library.css';
 
 const Library = () => {
@@ -37,7 +38,9 @@ const Library = () => {
       const response = await documents.getAll({ limit: 1000 });
       console.log('✅ Documents loaded:', response);
 
-      setAllDocuments(response.documents || []);
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      const examples = userData.email?.toLowerCase() === 'xyz@gmail.com' ? getSampleDocuments() : [];
+      setAllDocuments([...examples, ...(response.documents || [])]);
     } catch (err) {
       console.error('❌ Load documents error:', err);
       setError(err.message || 'Failed to load documents');
@@ -117,6 +120,13 @@ const Library = () => {
   };
 
   const handleDownload = async (doc) => {
+    if (doc.isPortfolioExample) {
+      const link = window.document.createElement('a');
+      link.href = `/samples/${doc.sampleSlug}.txt`;
+      link.download = `${doc.originalName.replace(/\.pdf$/i, '')}.txt`;
+      link.click();
+      return;
+    }
     try {
       console.log('⬇️ Downloading:', doc.originalName);
       await documents.download(doc._id, doc.originalName);
@@ -341,6 +351,7 @@ const Library = () => {
                       )}
                     </div>
                     <div className="doc-badges">
+                      {doc.isPortfolioExample && <span className="badge badge-info">Example</span>}
                       <span className={`badge badge-${getStatusBadge(doc.status)}`}>
                         {doc.status}
                       </span>
@@ -355,10 +366,14 @@ const Library = () => {
                   <div className="doc-card-body">
                     <h3 className="doc-card-title">{doc.originalName}</h3>
                     <div className="doc-card-meta">
-                      <span>{formatFileSize(doc.fileSize)}</span>
-                      <span>•</span>
-                      <span>{doc.fileType.toUpperCase()}</span>
-                      {doc.pageCount && (
+                      {doc.isPortfolioExample ? (
+                        <><span>PDF</span><span>•</span><span>Pre-analyzed example</span></>
+                      ) : (<>
+                        <span>{formatFileSize(doc.fileSize)}</span>
+                        <span>•</span>
+                        <span>{doc.fileType.toUpperCase()}</span>
+                      </>)}
+                      {!doc.isPortfolioExample && doc.pageCount && (
                         <>
                           <span>•</span>
                           <span>{doc.pageCount} pages</span>
@@ -366,14 +381,14 @@ const Library = () => {
                       )}
                     </div>
                     <p className="doc-card-date">
-                      Uploaded {formatDate(doc.uploadDate)}
+                      {doc.isPortfolioExample ? 'Included with the portfolio demo' : `Uploaded ${formatDate(doc.uploadDate)}`}
                     </p>
                   </div>
 
                   <div className="doc-card-footer">
                     {doc.status === 'analyzed' ? (
                       <button
-                        onClick={() => navigate(`/analysis/${doc._id}`)}
+                        onClick={() => navigate(doc.isPortfolioExample ? `/demo/${doc.sampleSlug}` : `/analysis/${doc._id}`)}
                         className="btn btn-primary btn-sm"
                       >
                         View Analysis
@@ -409,20 +424,18 @@ const Library = () => {
                           <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
                       </button>
-                      <button
-                        onClick={() => handleDelete(doc._id, doc.originalName)}
-                        className="btn-icon btn-icon-danger"
-                        title="Delete"
-                        disabled={deletingId === doc._id}
-                      >
-                        {deletingId === doc._id ? (
-                          <div className="spinner"></div>
-                        ) : (
-                          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                          </svg>
-                        )}
-                      </button>
+                      {!doc.isPortfolioExample && (
+                        <button
+                          onClick={() => handleDelete(doc._id, doc.originalName)}
+                          className="btn-icon btn-icon-danger"
+                          title="Delete"
+                          disabled={deletingId === doc._id}
+                        >
+                          {deletingId === doc._id ? <div className="spinner"></div> : (
+                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

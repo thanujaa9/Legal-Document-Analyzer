@@ -1,165 +1,108 @@
-<div align="center">
+# Legal Document Analyzer
 
-# 📄 Legal Document Analyzer
+A portfolio-ready full-stack application that extracts text from PDF/DOCX contracts and produces a structured, AI-assisted risk report. It also includes a public **Sample Demo** that works without an API key or credits. AI output is informational and is not legal advice.
 
-### **AI-Powered Contract Analysis Platform**
-*Enterprise-grade document processing with Redis caching, Bull queue, and GPT-4 integration*
+## Architecture
 
+```text
+React client ──JWT──> Express API ──> MongoDB/GridFS
+     │                    │
+     │                    ├── PDF/DOCX extraction + cleaning
+     │                    ├── bounded chunk analysis ──> Gemini API
+     │                    ├── final structured merge
+     │                    └── optional Redis cache
+     └── /demo uses a clearly labeled stored sample result (no AI call)
+```
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Node Version](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen)
-![React Version](https://img.shields.io/badge/react-18.2.0-61dafb)
-![MongoDB](https://img.shields.io/badge/MongoDB-6.0-4ea94b)
-![Redis](https://img.shields.io/badge/Redis-7.0-dc382d)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-412991)
+The Gemini key exists only in the backend environment. The browser never receives it. Analysis requests are user-scoped, atomically locked, and limited to one new live analysis per UTC day. Redis makes that global daily allowance durable across app instances.
 
-<br>
+## Local setup
 
-</div>
+Requirements: Node.js 18+, MongoDB, and optionally Redis.
 
----
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm test
+npm start
+```
 
+In another terminal:
 
-## 🎯 Overview
+```bash
+cd frontend
+npm install
+npm start
+```
 
-**Legal Document Analyzer** is a cutting-edge, full-stack web application that revolutionizes how legal professionals interact with contracts and legal documents. By harnessing the power of **OpenAI's GPT-4**, this platform automatically extracts clauses, identifies risks, generates summaries, and provides actionable insights—all in seconds.
+Open `http://localhost:3000/demo` for the credit-free sample. Create an account, upload a PDF/DOCX, and select Analyze for live analysis.
 
-### **Why This Project Stands Out**
+## Environment variables
 
-- 🧠 **AI-First Approach**: Leverages GPT-4 for intelligent contract analysis
-- ⚡ **Production-Ready**: Implements Redis caching and Bull queues for scalability
-- 🎯 **User-Centric Design**: Intuitive interface with real-time feedback
-- 🔒 **Secure**: JWT authentication with role-based access
-- 📊 **Comprehensive**: From upload to PDF export—complete workflow
-- 🚀 **Scalable**: Handles concurrent users with background job processing
+Copy `backend/.env.example`. Required variables are `MONGODB_URI` and a random `JWT_SECRET` of at least 32 characters. `GEMINI_API_KEY` enables live analysis; without it the API returns a clear `MISSING_API_KEY` error and all stored Sample Demo reports remain available. `FRONTEND_URL` is a comma-separated CORS allowlist. Configure `REDIS_URL` in deployment so the one-per-day global allowance is shared reliably.
 
-<div align="center">
+Never put `GEMINI_API_KEY` in a React variable, source file, commit, screenshot, or client-side hosting configuration. Rotate any key that has ever been exposed.
 
-### **Key Metrics**
+### Get a Gemini API key
 
-| Metric | Value |
-|--------|-------|
-| **Lines of Code** | 5,000+ |
-| **Components** | 12+ React Components |
-| **API Endpoints** | 20+ RESTful APIs |
-| **Response Time** | < 100ms (cached) |
-| **File Support** | PDF, DOCX |
-| **Max File Size** | 50MB |
-| **Concurrent Users** | 100+ |
+1. Sign in to [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Select **Create API key** and choose or create a Google Cloud project.
+3. Copy the key once and store it only as `GEMINI_API_KEY` in `backend/.env` locally or the backend host's secret settings.
+4. Keep `GEMINI_MODEL=gemini-2.5-flash` and restart the backend.
 
-</div>
+The Gemini free tier is quota-limited and Google may use free-tier prompts/responses to improve products. This portfolio displays a warning not to upload confidential, privileged, personal, or commercially sensitive documents.
 
----
+## Token-saving and safety approach
 
-## ✨ Features
+- Normalizes extracted whitespace and removes null characters.
+- Rejects unreadable documents and enforces 10 MB, 80-page, and 140,000-character defaults.
+- Splits text on paragraph/word boundaries into at most 12 chunks of 12,000 characters.
+- Caps each chunk response at 900 tokens and the final merge at 1,800 tokens.
+- Merges chunk reports into one concise JSON report and limits duplicate clauses/risks.
+- Reuses completed results and rejects concurrent duplicate Analyze requests.
+- Limits the entire public deployment to one new live analysis per UTC day, with an additional per-user/hour abuse limit.
+- Classifies missing/invalid key, exhausted quota, provider rate limit, context limit, invalid file, and oversized document errors.
 
-### 🤖 **AI-Powered Intelligence**
+Limits are configurable, but raising them increases latency and cost. The in-memory limiter is appropriate for a single demo instance; a multi-instance production deployment should use a shared Redis-backed limiter.
 
-<table>
-<tr>
-<td width="50%">
+## Demo mode
 
-#### **Intelligent Clause Extraction**
-- Automatically identifies 10+ clause types
-- Payment terms, termination clauses, liability
-- Confidentiality, warranties, indemnification
-- Governing law, dispute resolution
-- Intellectual property, non-compete
+After login, the original dashboard includes five fictional stored reports below Recent Documents: software services, NDA, employment offer, residential lease, and freelance design. Every report is explicitly labeled **Sample Demo** and states that no live request occurred. The portfolio demo account is `xyz@gmail.com` / `123456` when `ENABLE_DEMO_ACCOUNT=true`.
 
-</td>
-<td width="50%">
+## Tests
 
-#### **Risk Assessment Engine**
-- 4-tier risk classification (Low, Medium, High, Critical)
-- Clause-level risk scoring
-- Document-level aggregate risk (0-100)
-- Contextual risk explanations
-- Mitigation recommendations
+Backend unit tests cover text cleanup, a small document, bounded large-document chunking, empty/invalid text, exhausted quota mapping, provider rate-limit mapping, and token-limit mapping. Run `npm test` in `backend`. Frontend build verification is `npm test -- --watchAll=false` and `npm run build` in `frontend`.
 
-</td>
-</tr>
-<tr>
-<td>
+Live Gemini quota exhaustion cannot be safely manufactured without provider credentials. The provider error mapper is tested with representative error objects; run a controlled smoke test after adding your own key.
 
-#### **Smart Summaries**
-- Executive summary generation
-- Key findings extraction (3-5 points)
-- Recommendations list
-- 2-3 paragraph overviews
-- Context-aware insights
+## Deployment
 
-</td>
-<td>
+Recommended portfolio stack:
 
-#### **Advanced Analytics**
-- Overall risk scoring algorithm
-- Trend analysis across documents
-- Risk distribution visualization
-- Statistical insights
-- Comparative analysis
+- Frontend: Vercel static deployment.
+- Backend: Render web service.
+- Database: MongoDB Atlas.
+- Optional cache: Upstash Redis or Render Redis.
 
-</td>
-</tr>
-</table>
+### One-click Render Blueprint
 
----
+The repository includes `render.yaml`, which creates the static React site, Node API, and a private free Render Key Value service. Push the project to a Git provider, select **New → Blueprint** in Render, and choose the repository. Render prompts privately for `MONGODB_URI`, `GEMINI_API_KEY`, `FRONTEND_URL`, and `REACT_APP_API_URL`; it generates `JWT_SECRET` automatically.
 
-### ⚡ **Performance & Scalability**
+Create the Blueprint once to learn both Render URLs, then set:
 
-<table>
-<tr>
-<td width="33%">
+- Backend `FRONTEND_URL` to the static-site URL, such as `https://legal-document-analyzer.onrender.com`.
+- Frontend `REACT_APP_API_URL` to the API URL with `/api`, such as `https://legal-document-analyzer-api.onrender.com/api`.
 
-#### **Redis Caching**
-- ✅ Sub-100ms responses
-- ✅ 14-day cache TTL
-- ✅ Smart invalidation
-- ✅ Cache hit tracking
-- ✅ Memory-efficient
+Redeploy both services after setting those URLs.
 
-</td>
-<td width="33%">
+Set `REACT_APP_API_URL` at frontend build time to the backend `/api` URL. On the backend set `FRONTEND_URL`, `MONGODB_URI`, `JWT_SECRET`, `GEMINI_API_KEY`, and `REDIS_URL`. Use HTTPS-only platform URLs and restrict MongoDB network access/credentials.
 
-#### **Bull Queue Processing**
-- ✅ Asynchronous jobs
-- ✅ Automatic retries (3x)
-- ✅ Progress tracking
-- ✅ Failed job handling
-- ✅ Concurrent workers (2)
+Free tiers and quotas change; verify current terms before deployment. A sleeping free backend may have cold starts. The app deliberately permits only one new Gemini analysis per UTC day while leaving five stored reports always available. Public AI can still be abused, so retain authentication, provider restrictions, and the confidentiality warning.
 
-</td>
-<td width="33%">
+## Operational notes
 
-#### **GridFS Storage**
-- ✅ Large file support
-- ✅ Streaming capability
-- ✅ Efficient retrieval
-- ✅ Metadata storage
-- ✅ 50MB file limit
-
-</td>
-</tr>
-</table>
-
----
-
-### 📊 **Document Management**
-
-<table>
-<tr>
-<td width="50%">
-
-#### **Upload System**
-- 🎯 Drag-and-drop interface
-- 🎯 Multi-file upload (up to 10)
-- 🎯 Real-time progress bar
-- 🎯 File type validation
-- 🎯 Size limit enforcement
-- 🎯 Preview before upload
-- 🎯 Batch processing
-
-</td>
-<td width="50%">
-
-#### **Library Management**
-- 🎯 Advance
+- Scanned/image-only PDFs require OCR, which this project intentionally does not perform.
+- DOC (legacy Word) is rejected; convert it to DOCX.
+- The app stores uploaded legal text in MongoDB/GridFS. Do not use confidential contracts in a public demo without a retention/deletion policy.
+- The analysis is not a substitute for advice from a qualified lawyer.

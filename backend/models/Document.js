@@ -53,6 +53,7 @@ const documentSchema = new mongoose.Schema({
   },
   
   errorMessage: String,
+  errorCode: String,
   
   extractedText: String,
   pageCount: Number,
@@ -73,4 +74,3 @@ documentSchema.index({ originalName: 'text' });
 documentSchema.index({ user: 1, fileHash: 1 });
 
 module.exports = mongoose.model('Document', documentSchema);
-

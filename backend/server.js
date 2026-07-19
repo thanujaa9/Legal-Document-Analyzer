@@ -7,18 +7,21 @@ const cors = require('cors');
 const analysisController = require('./controllers/analysisController');
 const authController = require('./controllers/authController');
 const { protect } = require('./middleware/auth');
+const { rateLimit } = require('./middleware/rateLimit');
 
 const { initRedis } = require('./config/redis');
 const { initQueue, getQueueStats } = require('./config/queue');
 const { startWorker } = require('./workers/analysisWorker');
+const { ensureDemoUser } = require('./services/demoUserService');
 
 console.log('🔧 Environment loaded');
 console.log('📍 PORT:', process.env.PORT || 8081);
 
 const app = express();
 
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',').map(value => value.trim());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "*",
+  origin: (origin, callback) => (!origin || allowedOrigins.includes(origin)) ? callback(null, true) : callback(new Error('Origin not allowed')),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -92,19 +95,22 @@ const initializeRoutes = () => {
     const upload = require('./config/multer');
     const uploadController = require('./controllers/uploadController');
 
-    app.post('/api/auth/signup', authController.signup);
-    app.post('/api/auth/login', authController.login);
+    const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, scope: 'auth' });
+    const uploadLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, scope: 'upload' });
+    const analysisLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: Number(process.env.ANALYSES_PER_USER_PER_HOUR) || 5, scope: 'analysis' });
+    app.post('/api/auth/signup', authLimiter, authController.signup);
+    app.post('/api/auth/login', authLimiter, authController.login);
 
     app.get('/api/auth/me', protect, authController.getMe);
 
-    app.post('/api/documents', protect, upload.array('documents', 10), uploadController.uploadFiles);
+    app.post('/api/documents', protect, uploadLimiter, upload.array('documents', Number(process.env.MAX_FILES_PER_UPLOAD) || 3), uploadController.uploadFiles);
     app.get('/api/documents', protect, uploadController.getAllDocuments);
     app.get('/api/documents/:id', protect, uploadController.getDocument);
     app.delete('/api/documents/:id', protect, uploadController.deleteDocument);
     app.get('/api/documents/:id/download', protect, uploadController.downloadDocument);
     app.get('/api/documents/:id/stream', protect, uploadController.streamDocument);
 
-    app.post('/api/documents/:id/analyze', protect, analysisController.analyzeDocument);
+    app.post('/api/documents/:id/analyze', protect, analysisLimiter, analysisController.analyzeDocument);
     app.get('/api/documents/:id/analysis', protect, analysisController.getAnalysis);
     app.get('/api/jobs/:jobId/status', protect, analysisController.getJobStatus);
 
@@ -143,7 +149,8 @@ const setupErrorHandlers = () => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'File too large. Maximum size is 50MB'
+        code: 'FILE_TOO_LARGE',
+        message: `File too large. Maximum size is ${Number(process.env.MAX_FILE_SIZE_MB) || 10}MB`
       });
     }
 
@@ -157,8 +164,12 @@ const setupErrorHandlers = () => {
 const startServer = async () => {
   const PORT = process.env.PORT || 8081;
 
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET must be configured with at least 32 characters');
+  }
   const dbConnected = await connectDB();
   if (!dbConnected) process.exit(1);
+  await ensureDemoUser();
 
   const gridfsReady = await initGridFS();
   if (!gridfsReady) process.exit(1);

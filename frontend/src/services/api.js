@@ -18,7 +18,8 @@ const getHeaders = (isFormData = false) => {
 };
 
 const handleResponse = async (response) => {
-  const data = await response.json();
+  let data;
+  try { data = await response.json(); } catch (_) { data = {}; }
   
   if (!response.ok) {
     if (response.status === 401) {
@@ -27,7 +28,10 @@ const handleResponse = async (response) => {
       window.location.href = '/login';
     }
     
-    throw new Error(data.message || 'Something went wrong');
+    const error = new Error(data.message || 'Something went wrong');
+    error.code = data.code;
+    error.status = response.status;
+    throw error;
   }
   
   return data;

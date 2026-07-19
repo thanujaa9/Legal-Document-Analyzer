@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { documents, auth } from '../services/api';
+import { getSampleDocuments } from '../data/sampleAnalyses';
 import './Home.css';
 
 const Home = () => {
@@ -15,6 +16,9 @@ const Home = () => {
   const [recentDocs, setRecentDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const isDemoAccount = user?.email?.toLowerCase() === 'xyz@gmail.com';
+  const exampleDocuments = isDemoAccount ? getSampleDocuments() : [];
+  const displayedDocuments = [...exampleDocuments, ...recentDocs];
 
   useEffect(() => {
     loadDashboard();
@@ -43,11 +47,17 @@ const Home = () => {
         ? Math.round(totalRiskScore / analyzedDocs.length) 
         : 0;
 
+      const isDemoUser = userData.email?.toLowerCase() === 'xyz@gmail.com';
+      const examples = isDemoUser ? getSampleDocuments() : [];
+      const exampleRiskTotal = examples.reduce((sum, doc) => sum + doc.analysis.overallRiskScore, 0);
+      const combinedAnalyzedCount = analyzedDocs.length + examples.length;
       setStats({
-        total: allDocs.length,
-        analyzed: analyzedDocs.length,
-        highRisk: highRiskDocs.length,
-        avgRiskScore: avgRisk
+        total: allDocs.length + examples.length,
+        analyzed: combinedAnalyzedCount,
+        highRisk: highRiskDocs.length + examples.filter(doc => doc.analysis.overallRiskScore >= 60).length,
+        avgRiskScore: combinedAnalyzedCount > 0
+          ? Math.round((totalRiskScore + exampleRiskTotal) / combinedAnalyzedCount)
+          : avgRisk
       });
 
       const recentResponse = await documents.getAll({ 
@@ -115,7 +125,7 @@ const Home = () => {
         <div className="header-content">
           <div className="header-left">
             <h1 className="header-title">Legal Document Analyzer</h1>
-            <p className="header-subtitle">AI-Powered Contract Analysis with Redis Cache & Bull Queue</p>
+            <p className="header-subtitle">Gemini-powered contract analysis with Redis caching</p>
           </div>
           <div className="header-right">
             <div className="user-info">
@@ -243,7 +253,7 @@ const Home = () => {
               </button>
             </div>
 
-            {recentDocs.length === 0 ? (
+            {displayedDocuments.length === 0 ? (
               <div className="empty-state">
                 <svg width="64" height="64" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -259,7 +269,7 @@ const Home = () => {
               </div>
             ) : (
               <div className="documents-list">
-                {recentDocs.map((doc) => (
+                {displayedDocuments.map((doc) => (
                   <div key={doc._id} className="document-card">
                     <div className="doc-icon">
                       {doc.fileType === 'pdf' ? (
@@ -278,13 +288,16 @@ const Home = () => {
                     <div className="doc-info">
                       <h4 className="doc-name">{doc.originalName}</h4>
                       <div className="doc-meta">
-                        <span>{formatFileSize(doc.fileSize)}</span>
-                        <span>•</span>
-                        <span>{formatDate(doc.uploadDate)}</span>
+                        {doc.isPortfolioExample ? (
+                          <><span>PDF</span><span>•</span><span>Pre-analyzed example</span></>
+                        ) : (
+                          <><span>{formatFileSize(doc.fileSize)}</span><span>•</span><span>{formatDate(doc.uploadDate)}</span></>
+                        )}
                       </div>
                     </div>
 
                     <div className="doc-status">
+                      {doc.isPortfolioExample && <span className="badge badge-info">Example</span>}
                       <span className={`badge badge-${getStatusBadge(doc.status)}`}>
                         {doc.status}
                       </span>
@@ -298,7 +311,7 @@ const Home = () => {
                     <div className="doc-actions">
                       {doc.status === 'analyzed' ? (
                         <button 
-                          onClick={() => navigate(`/analysis/${doc._id}`)}
+                          onClick={() => navigate(doc.isPortfolioExample ? `/demo/${doc.sampleSlug}` : `/analysis/${doc._id}`)}
                           className="btn btn-primary btn-sm"
                         >
                           View Analysis

@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('unauthenticated visitors see the original login with demo credentials', async () => {
+  window.history.pushState({}, '', '/');
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(await screen.findByText('Sign in to your account')).toBeInTheDocument();
+  expect(screen.getByDisplayValue('xyz@gmail.com')).toBeInTheDocument();
+  expect(screen.getByDisplayValue('123456')).toBeInTheDocument();
 });
