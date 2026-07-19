@@ -1,24 +1,144 @@
 # Legal Document Analyzer
 
-A portfolio-ready full-stack application that extracts text from PDF/DOCX contracts and produces a structured, AI-assisted risk report. It also includes a public **Sample Demo** that works without an API key or credits. AI output is informational and is not legal advice.
+<p align="center">
+  <strong>AI-assisted contract review with structured risks, clause-level insights and portfolio-ready example reports.</strong>
+</p>
+
+<p align="center">
+  <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white">
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white">
+  <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white">
+  <img alt="Gemini" src="https://img.shields.io/badge/AI-Gemini-4285F4?logo=google&logoColor=white">
+  <img alt="Redis" src="https://img.shields.io/badge/Cache-Redis-DC382D?logo=redis&logoColor=white">
+</p>
+
+Legal Document Analyzer is a full-stack portfolio application that converts PDF and DOCX agreements into concise, structured review reports. It extracts and cleans document text, analyzes bounded chunks with Gemini, combines the results, highlights important clauses and risks, and lets users save notes or export a formatted PDF report.
+
+The project includes five fictional, pre-analyzed portfolio examples, so the complete review experience remains available even when live AI quota is unavailable.
+
+> **Important:** AI-generated output is informational and is not legal advice. Never upload confidential, privileged, personal or commercially sensitive documents to a public demo.
+
+## Highlights
+
+- Structured executive summary, findings, clause analysis and risk register
+- Risk severity scoring with actionable recommendations
+- PDF and DOCX text extraction with input cleaning
+- Bounded chunk processing for large documents
+- Token and output limits to reduce latency and API usage
+- Duplicate-analysis protection and cached completed results
+- Clause-level notes and downloadable PDF reports
+- Five detailed fictional documents with stored analyses
+- JWT authentication and server-side API keys
+- MongoDB/GridFS document storage
+- Redis-backed cache, daily AI allowance and abuse protection
+- Clear invalid-file, quota, rate-limit and provider error states
+- Responsive React interface with progress and loading feedback
+
+## Product walkthrough
+
+The demo account opens directly into a populated document workspace. Recruiters can inspect five completed examples—including a software services agreement, mutual NDA, employment offer, residential lease and freelance design agreement—without consuming AI quota. Each example includes the source document, executive summary, key findings, clause-level analysis, risks, recommendations, notes and PDF export.
+
+**Demo account**
+
+```text
+Email:    xyz@gmail.com
+Password: 123456
+```
+
+The demo account is created automatically when `ENABLE_DEMO_ACCOUNT=true`.
+
+## Screenshots
+
+Screenshots are recommended for the final portfolio README. Add four clean images under `docs/screenshots/` and place them here:
+
+1. Login page
+2. Dashboard with analyzed documents
+3. Analysis overview with risk summary
+4. Clause and risk details
+
+Capture the application only—exclude browser tabs, the address bar, developer tools, terminal output, API keys and personal data.
+
+<!--
+![Login](docs/screenshots/login.png)
+![Dashboard](docs/screenshots/dashboard.png)
+![Analysis overview](docs/screenshots/analysis-overview.png)
+![Clause and risk review](docs/screenshots/clause-risk-review.png)
+-->
 
 ## Architecture
 
-```text
-React client ──JWT──> Express API ──> MongoDB/GridFS
-     │                    │
-     │                    ├── PDF/DOCX extraction + cleaning
-     │                    ├── bounded chunk analysis ──> Gemini API
-     │                    ├── final structured merge
-     │                    └── optional Redis cache
-     └── /demo uses a clearly labeled stored sample result (no AI call)
+```mermaid
+flowchart LR
+    U["React client"] -->|"JWT + HTTPS"| API["Express API"]
+    API --> AUTH["Authentication and rate limits"]
+    API --> EXTRACT["PDF/DOCX extraction"]
+    EXTRACT --> CLEAN["Clean and validate text"]
+    CLEAN --> CHUNKS["Bounded chunks"]
+    CHUNKS --> GEMINI["Gemini API"]
+    GEMINI --> MERGE["Structured report merge"]
+    MERGE --> DB["MongoDB + GridFS"]
+    API <--> REDIS["Redis cache and daily allowance"]
+    U --> EXAMPLES["Stored portfolio examples"]
 ```
 
-The Gemini key exists only in the backend environment. The browser never receives it. Analysis requests are user-scoped, atomically locked, and limited to one new live analysis per UTC day. Redis makes that global daily allowance durable across app instances.
+API keys remain in the backend environment. The browser never receives the Gemini, MongoDB, Redis or JWT secrets.
 
-## Local setup
+## Technology
 
-Requirements: Node.js 18+, MongoDB, and optionally Redis.
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, React Router, responsive CSS |
+| Backend | Node.js, Express |
+| AI | Google Gemini 2.5 Flash |
+| Database | MongoDB Atlas, Mongoose, GridFS |
+| Cache and limits | Redis / Upstash, Bull |
+| Document extraction | pdf-parse, Mammoth |
+| PDF reports | PDFKit and browser print export |
+| Authentication | JWT, bcrypt |
+| Testing | Node test runner, React Testing Library |
+
+## Analysis pipeline
+
+1. Validate file type, upload size and ownership.
+2. Store the original document in GridFS.
+3. Extract and normalize readable text.
+4. Reject empty, image-only or oversized documents.
+5. Split text on paragraph and word boundaries.
+6. Analyze each bounded chunk with capped output tokens.
+7. Merge partial results into one non-duplicative JSON report.
+8. Validate and store the report in MongoDB.
+9. Cache completed results and expose progress to the client.
+
+Default portfolio limits:
+
+| Control | Default |
+|---|---:|
+| Maximum upload size | 10 MB |
+| Maximum document pages | 80 |
+| Maximum extracted characters | 140,000 |
+| Maximum chunks | 12 |
+| Characters per chunk | 12,000 |
+| Output tokens per chunk | 900 |
+| Final merge output tokens | 1,800 |
+| Public live analyses | 1 per UTC day |
+
+## Local development
+
+### Prerequisites
+
+- Node.js 18 or newer
+- MongoDB local instance or Atlas connection
+- Gemini API key for live analysis
+- Redis connection URL (recommended, but optional locally)
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/thanujaa9/Legal-Document-Analyzer.git
+cd Legal-Document-Analyzer
+```
+
+### 2. Start the backend
 
 ```bash
 cd backend
@@ -28,81 +148,116 @@ npm test
 npm start
 ```
 
-In another terminal:
+The API runs at `http://localhost:8081`.
+
+### 3. Start the frontend
+
+Open another terminal:
 
 ```bash
 cd frontend
+cp .env.example .env
 npm install
 npm start
 ```
 
-Open `http://localhost:3000/demo` for the credit-free sample. Create an account, upload a PDF/DOCX, and select Analyze for live analysis.
+Open `http://localhost:3000`.
 
 ## Environment variables
 
-Copy `backend/.env.example`. Required variables are `MONGODB_URI` and a random `JWT_SECRET` of at least 32 characters. `GEMINI_API_KEY` enables live analysis; without it the API returns a clear `MISSING_API_KEY` error and all stored Sample Demo reports remain available. `FRONTEND_URL` is a comma-separated CORS allowlist. Configure `REDIS_URL` in deployment so the one-per-day global allowance is shared reliably.
+### Backend
 
-Never put `GEMINI_API_KEY` in a React variable, source file, commit, screenshot, or client-side hosting configuration. Rotate any key that has ever been exposed.
+| Variable | Required | Purpose |
+|---|---|---|
+| `MONGODB_URI` | Yes | MongoDB connection string |
+| `JWT_SECRET` | Yes | JWT signing secret, at least 32 random characters |
+| `FRONTEND_URL` | Yes | Allowed frontend origin or comma-separated origins |
+| `GEMINI_API_KEY` | For live AI | Server-side Google AI Studio key |
+| `GEMINI_MODEL` | No | Defaults to `gemini-2.5-flash` |
+| `REDIS_URL` | Recommended | TLS Redis URL for cache and shared limits |
+| `ENABLE_DEMO_ACCOUNT` | No | Creates the portfolio demo login |
+| `DAILY_LIVE_ANALYSIS_LIMIT` | No | Global daily allowance; defaults to `1` |
+| `ANALYSES_PER_USER_PER_HOUR` | No | Additional per-user abuse limit |
 
-### Get a Gemini API key
+### Frontend
 
-1. Sign in to [Google AI Studio](https://aistudio.google.com/app/apikey).
-2. Select **Create API key** and choose or create a Google Cloud project.
-3. Copy the key once and store it only as `GEMINI_API_KEY` in `backend/.env` locally or the backend host's secret settings.
-4. Keep `GEMINI_MODEL=gemini-2.5-flash` and restart the backend.
+| Variable | Required | Purpose |
+|---|---|---|
+| `REACT_APP_API_URL` | Yes | Backend URL ending in `/api` |
 
-The Gemini free tier is quota-limited and Google may use free-tier prompts/responses to improve products. This portfolio displays a warning not to upload confidential, privileged, personal, or commercially sensitive documents.
+Copy the provided `.env.example` files. Never commit `.env`, API keys, database credentials, Redis URLs or JWT secrets.
 
-## Token-saving and safety approach
+### Gemini API key
 
-- Normalizes extracted whitespace and removes null characters.
-- Rejects unreadable documents and enforces 10 MB, 80-page, and 140,000-character defaults.
-- Splits text on paragraph/word boundaries into at most 12 chunks of 12,000 characters.
-- Caps each chunk response at 900 tokens and the final merge at 1,800 tokens.
-- Merges chunk reports into one concise JSON report and limits duplicate clauses/risks.
-- Reuses completed results and rejects concurrent duplicate Analyze requests.
-- Limits the entire public deployment to one new live analysis per UTC day, with an additional per-user/hour abuse limit.
-- Classifies missing/invalid key, exhausted quota, provider rate limit, context limit, invalid file, and oversized document errors.
+1. Open [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Create a key for your Google Cloud project.
+3. Save it only as `GEMINI_API_KEY` in the backend environment.
+4. Restart the backend.
 
-Limits are configurable, but raising them increases latency and cost. The in-memory limiter is appropriate for a single demo instance; a multi-instance production deployment should use a shared Redis-backed limiter.
+Free-tier availability and quotas are controlled by Google and may change. The application handles missing keys and exhausted quota without disabling stored example reports.
 
-## Demo mode
+## Testing
 
-After login, the original dashboard includes five fictional stored reports below Recent Documents: software services, NDA, employment offer, residential lease, and freelance design. Every report is explicitly labeled **Sample Demo** and states that no live request occurred. The portfolio demo account is `xyz@gmail.com` / `123456` when `ENABLE_DEMO_ACCOUNT=true`.
+Backend tests cover text cleanup, safe chunking, empty input, provider-error classification, missing API keys, daily allowance enforcement and repeated-request rate limiting.
 
-## Tests
+```bash
+cd backend
+npm test
+```
 
-Backend unit tests cover text cleanup, a small document, bounded large-document chunking, empty/invalid text, exhausted quota mapping, provider rate-limit mapping, and token-limit mapping. Run `npm test` in `backend`. Frontend build verification is `npm test -- --watchAll=false` and `npm run build` in `frontend`.
+Frontend verification:
 
-Live Gemini quota exhaustion cannot be safely manufactured without provider credentials. The provider error mapper is tested with representative error objects; run a controlled smoke test after adding your own key.
+```bash
+cd frontend
+CI=true npm test -- --runInBand
+npm run build
+```
 
 ## Deployment
 
-Recommended portfolio stack:
+Recommended portfolio deployment:
 
-- Frontend: Vercel static deployment.
-- Backend: Render web service.
-- Database: MongoDB Atlas.
-- Optional cache: Upstash Redis or Render Redis.
+- **Frontend:** Vercel
+- **Backend:** Railway or a non-sleeping Render web service
+- **Database:** MongoDB Atlas
+- **Redis:** Upstash Redis
 
-### One-click Render Blueprint
+The repository also includes `render.yaml` for a Render Blueprint deployment.
 
-The repository includes `render.yaml`, which creates the static React site, Node API, and a private free Render Key Value service. Push the project to a Git provider, select **New → Blueprint** in Render, and choose the repository. Render prompts privately for `MONGODB_URI`, `GEMINI_API_KEY`, `FRONTEND_URL`, and `REACT_APP_API_URL`; it generates `JWT_SECRET` automatically.
+Configure these secrets in the hosting dashboards—not in GitHub:
 
-Create the Blueprint once to learn both Render URLs, then set:
+```text
+MONGODB_URI
+JWT_SECRET
+GEMINI_API_KEY
+REDIS_URL
+FRONTEND_URL
+REACT_APP_API_URL
+```
 
-- Backend `FRONTEND_URL` to the static-site URL, such as `https://legal-document-analyzer.onrender.com`.
-- Frontend `REACT_APP_API_URL` to the API URL with `/api`, such as `https://legal-document-analyzer-api.onrender.com/api`.
+For production, use HTTPS origins, restrict database credentials, rotate exposed tokens, retain the daily analysis cap and monitor Gemini usage. Free Render backend instances sleep after inactivity, so the first API request may be slow.
 
-Redeploy both services after setting those URLs.
+## Known limitations
 
-Set `REACT_APP_API_URL` at frontend build time to the backend `/api` URL. On the backend set `FRONTEND_URL`, `MONGODB_URI`, `JWT_SECRET`, `GEMINI_API_KEY`, and `REDIS_URL`. Use HTTPS-only platform URLs and restrict MongoDB network access/credentials.
+- Scanned or image-only PDFs require OCR, which is not included.
+- Legacy `.doc` files must be converted to `.docx`.
+- Legal analysis can be incomplete or inaccurate and requires professional review.
+- Public live AI features can consume quota; authentication and rate limits reduce but do not eliminate abuse.
+- Uploaded documents remain in MongoDB/GridFS until deleted.
 
-Free tiers and quotas change; verify current terms before deployment. A sleeping free backend may have cold starts. The app deliberately permits only one new Gemini analysis per UTC day while leaving five stored reports always available. Public AI can still be abused, so retain authentication, provider restrictions, and the confidentiality warning.
+## Security notes
 
-## Operational notes
+- Secrets are loaded only from backend environment variables.
+- Upload types and sizes are validated before processing.
+- Routes enforce document ownership.
+- Authentication, upload and analysis endpoints are rate limited.
+- Duplicate Analyze requests are locked to prevent repeated provider calls.
+- Redis credentials and API keys are never printed intentionally.
 
-- Scanned/image-only PDFs require OCR, which this project intentionally does not perform.
-- DOC (legacy Word) is rejected; convert it to DOCX.
-- The app stores uploaded legal text in MongoDB/GridFS. Do not use confidential contracts in a public demo without a retention/deletion policy.
-- The analysis is not a substitute for advice from a qualified lawyer.
+## License
+
+This project currently uses the package-level ISC license declaration. Add a root `LICENSE` file before presenting it as reusable open-source software.
+
+---
+
+Built as a full-stack portfolio project demonstrating secure AI integration, document processing, structured data extraction and cost-aware public demo design.
