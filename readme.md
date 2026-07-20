@@ -12,6 +12,10 @@
   <img alt="Redis" src="https://img.shields.io/badge/Cache-Redis-DC382D?logo=redis&logoColor=white">
 </p>
 
+<p align="center">
+  <a href="https://legal-document-analyzer-main.onrender.com"><strong>View Live Demo →</strong></a>
+</p>
+
 Legal Document Analyzer is a full-stack portfolio application that converts PDF and DOCX agreements into concise, structured review reports. It extracts and cleans document text, analyzes bounded chunks with Gemini, combines the results, highlights important clauses and risks, and lets users save notes or export a formatted PDF report.
 
 The project includes five fictional, pre-analyzed portfolio examples, so the complete review experience remains available even when live AI quota is unavailable.
@@ -37,6 +41,8 @@ The project includes five fictional, pre-analyzed portfolio examples, so the com
 ## Product walkthrough
 
 The demo account opens directly into a populated document workspace. Recruiters can inspect five completed examples—including a software services agreement, mutual NDA, employment offer, residential lease and freelance design agreement—without consuming AI quota. Each example includes the source document, executive summary, key findings, clause-level analysis, risks, recommendations, notes and PDF export.
+
+**Live application:** [https://legal-document-analyzer-main.onrender.com](https://legal-document-analyzer-main.onrender.com)
 
 **Demo account**
 
