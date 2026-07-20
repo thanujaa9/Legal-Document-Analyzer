@@ -53,7 +53,6 @@ const DemoAnalysis = () => {
         <div className="header-content">
           <div className="header-info">
             <h1>{sample.title}</h1>
-            <div className="header-meta"><span>PORTFOLIO EXAMPLE</span><span>•</span><span>PRE-ANALYZED</span></div>
           </div>
           <div className="header-actions">
             <Link className="btn btn-secondary btn-sm" to="/dashboard">Back to Dashboard</Link>
