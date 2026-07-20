@@ -49,21 +49,25 @@ The demo account is created automatically when `ENABLE_DEMO_ACCOUNT=true`.
 
 ## Screenshots
 
-Screenshots are recommended for the final portfolio README. Add four clean images under `docs/screenshots/` and place them here:
+### Demo access
 
-1. Login page
-2. Dashboard with analyzed documents
-3. Analysis overview with risk summary
-4. Clause and risk details
+![Legal Document Analyzer login](docs/screenshots/login.png)
 
-Capture the application only—exclude browser tabs, the address bar, developer tools, terminal output, API keys and personal data.
+### Document workspace
 
-<!--
-![Login](docs/screenshots/login.png)
-![Dashboard](docs/screenshots/dashboard.png)
-![Analysis overview](docs/screenshots/analysis-overview.png)
-![Clause and risk review](docs/screenshots/clause-risk-review.png)
--->
+![Dashboard with analyzed legal documents](docs/screenshots/dashboard.png)
+
+### Structured analysis overview
+
+![Contract analysis overview and risk score](docs/screenshots/analysis-overview.png)
+
+### Clause review and notes
+
+![Clause-level analysis and notes](docs/screenshots/clause-notes.png)
+
+### Risk register and recommendations
+
+![Risk register with recommendations](docs/screenshots/risk-review.png)
 
 ## Architecture
 
@@ -259,4 +263,3 @@ For production, use HTTPS origins, restrict database credentials, rotate exposed
 This project currently uses the package-level ISC license declaration. Add a root `LICENSE` file before presenting it as reusable open-source software.
 
 ---
-
