@@ -51,7 +51,6 @@ Email:    xyz@gmail.com
 Password: 123456
 ```
 
-The demo account is created automatically when `ENABLE_DEMO_ACCOUNT=true`.
 
 ## Screenshots
 
